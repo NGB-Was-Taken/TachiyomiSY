@@ -40,4 +40,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: TachiyomiSY-${{ github.sha }}
-          path: app/build/outputs/apk/dev/debug/*.apk
+          path: app/build/outputs/apk/dev/debug/app-dev-armeabi-v7a-debug.apk
