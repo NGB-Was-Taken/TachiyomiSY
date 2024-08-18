@@ -1,6 +1,7 @@
 package eu.kanade.tachiyomi.ui.reader.viewer.webtoon
 
 import android.graphics.PointF
+import android.os.Build
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -402,4 +403,5 @@ class WebtoonViewer(
     }
 }
 
-private const val RecyclerViewCacheSize = 4
+// Double the cache size to reduce rebinds/recycles incurred by the extra layout space on scroll direction changes
+private val RecyclerViewCacheSize = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 4 else 2
