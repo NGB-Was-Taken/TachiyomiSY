@@ -24,6 +24,7 @@ import exh.source.isEhBasedManga
 import kotlinx.collections.immutable.ImmutableList
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.library.service.LibraryPreferences
+import tachiyomi.source.local.isLocal
 import uy.kohesive.injekt.Injekt
 import uy.kohesive.injekt.api.get
 import java.time.Instant
@@ -97,7 +98,7 @@ fun ChapterListDialog(
                     bookmark = chapterItem.chapter.bookmark,
                     selected = false,
                     downloadIndicatorEnabled = false,
-                    downloadStateProvider = downloadState,
+                    downloadStateProvider = { downloadState },
                     downloadProgressProvider = { activeDownload?.progress ?: 0 },
                     chapterSwipeStartAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
                     chapterSwipeEndAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
