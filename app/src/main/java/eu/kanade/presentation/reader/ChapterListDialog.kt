@@ -45,7 +45,7 @@ fun ChapterListDialog(
     val context = LocalContext.current
     val state = rememberLazyListState(chapters.indexOfFirst { it.isCurrent }.coerceAtLeast(0))
     val downloadManager: DownloadManager = remember { Injekt.get() }
-    val progressFlow by downloadManager.progressFlow().collectAsState(emptyList<Download>())
+    val progressList by downloadManager.progressFlow().collectAsState(emptyList<Download>())
 
     AdaptiveSheet(
         onDismissRequest = onDismissRequest,
@@ -59,7 +59,7 @@ fun ChapterListDialog(
                 items = chapters,
                 key = { "chapter-${it.chapter.id}" },
             ) { chapterItem ->
-                val activeDownload = progressFlow.find { it.chapter.id == chapterItem.chapter.id }
+                val activeDownload = progressList.find { it.chapter.id == chapterItem.chapter.id }
                 val downloaded = if (chapterItem.manga.isLocal()) {
                     true
                 } else {
