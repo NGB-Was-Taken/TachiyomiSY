@@ -9,12 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.presentation.manga.components.MangaChapterListItem
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -25,6 +22,8 @@ import eu.kanade.tachiyomi.util.lang.toRelativeString
 import exh.metadata.MetadataUtil
 import exh.source.isEhBasedManga
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import tachiyomi.domain.chapter.model.Chapter
 import tachiyomi.domain.library.service.LibraryPreferences
 import tachiyomi.source.local.isLocal
@@ -63,7 +62,12 @@ fun ChapterListDialog(
                 key = { "chapter-${it.chapter.id}" },
             ) { chapterItem ->
                 val activeDownload = downloadQueueState.find { it.chapter.id == chapterItem.chapter.id }
-                val progress = activeDownload?.let { downloadManager.progressFlow().filter { it.chapter.id == chapterItem.chapter.id }.map { it.progress }.collectAsState(0).value } ?: 0
+                val progress = activeDownload?.let {
+                    downloadManager.progressFlow()
+                        .filter { it.chapter.id == chapterItem.chapter.id }
+                        .map { it.progress }
+                        .collectAsState(0).value
+                } ?: 0
                 val downloaded = if (chapterItem.manga.isLocal()) {
                     true
                 } else {
