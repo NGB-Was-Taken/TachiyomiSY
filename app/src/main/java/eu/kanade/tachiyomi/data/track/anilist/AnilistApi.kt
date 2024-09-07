@@ -333,7 +333,10 @@ class AnilistApi(val client: OkHttpClient, interceptor: AnilistInterceptor) {
             |
             """.trimMargin()
             val payload = buildJsonObject {
-                put("mangaId", track.remoteId)
+                put("query", query)
+                putJsonObject("variables") {
+                    put("mangaId", track.remoteId)
+                }
             }
             with(json) {
                 authClient.newCall(
