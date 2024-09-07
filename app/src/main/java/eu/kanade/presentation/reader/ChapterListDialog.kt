@@ -9,9 +9,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import eu.kanade.presentation.components.AdaptiveSheet
 import eu.kanade.presentation.manga.components.MangaChapterListItem
 import eu.kanade.tachiyomi.data.download.DownloadManager
@@ -45,7 +48,7 @@ fun ChapterListDialog(
     val context = LocalContext.current
     val state = rememberLazyListState(chapters.indexOfFirst { it.isCurrent }.coerceAtLeast(0))
     val downloadManager: DownloadManager = remember { Injekt.get() }
-    val progressList by downloadManager.progressFlow().collectAsState(emptyList<Download>())
+    val downloadQueueState by downloadManager.queueState.collectAsState()
 
     AdaptiveSheet(
         onDismissRequest = onDismissRequest,
@@ -59,7 +62,8 @@ fun ChapterListDialog(
                 items = chapters,
                 key = { "chapter-${it.chapter.id}" },
             ) { chapterItem ->
-                val activeDownload = progressList.find { it.chapter.id == chapterItem.chapter.id }
+                val activeDownload = downloadQueueState.find { it.chapter.id == chapterItem.chapter.id }
+                val progress = activeDownload?.let { downloadManager.progressFlow().filter { it.chapter.id == chapterItem.chapter.id }.map { it.progress }.collectAsState(0).value } ?: 0
                 val downloaded = if (chapterItem.manga.isLocal()) {
                     true
                 } else {
@@ -100,7 +104,7 @@ fun ChapterListDialog(
                     selected = false,
                     downloadIndicatorEnabled = false,
                     downloadStateProvider = { downloadState },
-                    downloadProgressProvider = { activeDownload?.progress ?: 0 },
+                    downloadProgressProvider = { progress },
                     chapterSwipeStartAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
                     chapterSwipeEndAction = LibraryPreferences.ChapterSwipeAction.ToggleBookmark,
                     onLongClick = { /*TODO*/ },
