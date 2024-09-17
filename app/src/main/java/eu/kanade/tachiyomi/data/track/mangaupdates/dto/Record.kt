@@ -21,6 +21,7 @@ data class Record(
     val ratingVotes: Int? = null,
     @SerialName("latest_chapter")
     val latestChapter: Int? = null,
+    val authors: List<Author>? = null,
 )
 
 fun Record.toTrackSearch(id: Long): TrackSearch {
