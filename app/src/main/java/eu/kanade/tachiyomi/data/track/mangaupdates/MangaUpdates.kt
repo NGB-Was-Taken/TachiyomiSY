@@ -12,11 +12,11 @@ import eu.kanade.tachiyomi.data.track.mangaupdates.dto.copyTo
 import eu.kanade.tachiyomi.data.track.mangaupdates.dto.toTrackSearch
 import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
+import eu.kanade.tachiyomi.util.lang.htmlDecode
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import tachiyomi.i18n.MR
 import tachiyomi.domain.track.model.Track as DomainTrack
-import eu.kanade.tachiyomi.util.lang.htmlDecode
 
 class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker {
 
@@ -119,7 +119,7 @@ class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker
         interceptor.newAuth(authenticated.sessionToken)
     }
 
-    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata {
+    override suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
         val series = api.getSeries(track)
         return series?.let {
             TrackMangaMetadata(
@@ -130,7 +130,7 @@ class MangaUpdates(id: Long) : BaseTracker(id, "MangaUpdates"), DeletableTracker
                 it.authors?.filter { it.type == "Author" }?.joinToString(separator = ", ") { it.name ?: "" },
                 it.authors?.filter { it.type == "Artist" }?.joinToString(separator = ", ") { it.name ?: "" },
             )
-        } ?: TrackMangaMetadata()
+        }
     }
 
     fun restoreSession(): String? {

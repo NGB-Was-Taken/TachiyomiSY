@@ -210,15 +210,10 @@ class MangaUpdatesApi(
     }
 
     suspend fun getSeries(track: DomainTrack): Record? {
-        return try {
-            with(json) {
-                client.newCall(GET("$baseUrl/v1/series/${track.remoteId}"))
-                    .awaitSuccess()
-                    .parseAs<Record>()
-            }
-        } catch (e: Exception) {
-            logcat(LogPriority.ERROR, e)
-            null
+        return with(json) {
+            client.newCall(GET("$baseUrl/v1/series/${track.remoteId}"))
+                .awaitSuccess()
+                .parseAs<Record>()
         }
     }
 }
