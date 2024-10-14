@@ -3,6 +3,7 @@ package eu.kanade.tachiyomi.data.track.myanimelist
 import android.net.Uri
 import androidx.core.net.toUri
 import eu.kanade.tachiyomi.data.database.models.Track
+import eu.kanade.tachiyomi.data.track.model.TrackMangaMetadata
 import eu.kanade.tachiyomi.data.track.model.TrackSearch
 import eu.kanade.tachiyomi.network.DELETE
 import eu.kanade.tachiyomi.network.GET
@@ -29,6 +30,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import tachiyomi.core.common.util.lang.withIOContext
+import tachiyomi.core.common.util.system.logcat
 import uy.kohesive.injekt.injectLazy
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -214,6 +216,45 @@ class MyAnimeListApi(
                 matches + findListItems(query, offset + LIST_PAGINATION_AMOUNT)
             } else {
                 matches
+            }
+        }
+    }
+
+    suspend fun getMangaMetadata(track: DomainTrack): TrackMangaMetadata? {
+        return withIOContext {
+            val url = "$BASE_API_URL/manga".toUri().buildUpon()
+                .appendPath(track.remoteId.toString())
+                .appendQueryParameter(
+                    "fields",
+                    "id,title,synopsis,main_picture,authors{first_name,last_name}",
+                )
+                .build()
+            with(json) {
+                authClient.newCall(GET(url.toString()))
+                    .awaitSuccess()
+                    .parseAs<JsonObject>()
+                    .let {
+                        val obj = it.jsonObject
+                        TrackMangaMetadata(
+                            remoteId = obj["id"]?.jsonPrimitive?.long,
+                            title = obj["title"]?.jsonPrimitive?.content,
+                            thumbnailUrl = obj["main_picture"]?.jsonObject?.get("large")?.jsonPrimitive?.content
+                                ?: obj["main_picture"]?.jsonObject?.get("medium")?.jsonPrimitive?.content,
+                            description = obj["synopsis"]?.jsonPrimitive?.content,
+                            authors = obj["authors"]?.jsonArray?.filter {
+                                it.jsonObject["role"]?.jsonPrimitive?.content in listOf("Story", "Story & Art")
+                            }?.joinToString(", ") {
+                                val node = it.jsonObject["node"]?.jsonObject
+                                "${node?.get("first_name")?.jsonPrimitive?.content ?: ""} ${node?.get("last_name")?.jsonPrimitive?.contentOrNull ?: ""}".trim()
+                            },
+                            artists = obj["authors"]?.jsonArray?.filter {
+                                it.jsonObject["role"]?.jsonPrimitive?.content in listOf("Art", "Story & Art")
+                            }?.joinToString(", ") {
+                                val node = it.jsonObject["node"]?.jsonObject
+                                "${node?.get("first_name")?.jsonPrimitive?.content ?: ""} ${node?.get("last_name")?.jsonPrimitive?.contentOrNull ?: ""}".trim()
+                            },
+                        )
+                    }
             }
         }
     }
